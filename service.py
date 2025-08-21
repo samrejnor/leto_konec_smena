@@ -1,9 +1,13 @@
-import openai, time, base64, mimetypes, json, os
+import openai, time, base64, mimetypes, json
+
+with open('key.txt', 'r', encoding='utf-8') as file:
+    content = file.read()
 
 client = openai.OpenAI(
     base_url = "https://openrouter.ai/api/v1",
-    api_key = os.getenv("OPENROUTER_API_KEY"),
+    api_key = base64.b64decode(content).decode("utf-8")
 )
+
 
 json_template = json.dumps({
     "name": "N/A",
