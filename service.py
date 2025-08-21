@@ -1,8 +1,8 @@
-import openai, time, base64, mimetypes, json
+import openai, time, base64, mimetypes, json, os
 
 client = openai.OpenAI(
     base_url = "https://openrouter.ai/api/v1",
-    api_key = "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",
+    api_key = os.getenv("OPENROUTER_API_KEY"),
 )
 
 json_template = json.dumps({
