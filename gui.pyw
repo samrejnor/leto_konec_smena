@@ -139,7 +139,7 @@ class MainWindow(QWidget):
         self.setWindowTitle("Честный знак")
         self.setGeometry(200, 100, 1000, 600)
         self.setStyleSheet("background-color: #121212; color: #fff; font-family: Arial; font-size: 14px;")
-        self.setWindowIcon(QIcon("./favicon.ico"))
+        self.setWindowIcon(QIcon("./gui.dist/favicon.ico"))
 
         self.stack = QStackedWidget()
         main_screen = self.create_main_screen()
