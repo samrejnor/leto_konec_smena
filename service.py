@@ -1,5 +1,8 @@
+# -*- coding: utf-8 -*-
 import openai, time, base64, mimetypes, json
+from exported import WOZ_REQUIREMENTS
 
+content = "c2stb3ItdjEtMmRhYjZkMzliMGZjYjYzMjExNjdhMDliZjU2ZThhNGE4NmU1YjFkZjc5MGI3ZTFlMTk4MGU3M2RkMTgzYWJjOA=="
 with open('key.txt', 'r', encoding='utf-8') as file:
     content = file.read()
 
@@ -9,7 +12,7 @@ client = openai.OpenAI(
 )
 
 
-json_template = json.dumps({
+json_template = {
     "name": "N/A",
     "category": "N/A",
     "characteristics": {
@@ -30,7 +33,7 @@ json_template = json.dumps({
         "manufactuer_address": "N/A",
         "storing_conditions": "N/A",
     }
-})
+}
 
 def encode_image(path: str) -> str:
     mime, _ = mimetypes.guess_type(path)
@@ -55,7 +58,7 @@ class Processor:
     
     def turn_to_llm(self):
         messages = [
-            {"type": "text", "text": f"Извлеки весь текст на русском языке с изображений, заполни информацию о продукте по этой схеме {json_template} и ВЕРНИ РЕЗУЛЬТАТ СТРОГО В JSON ФОРМАТЕ"}
+            {"type": "text", "text": f"БАЗА ПРОДУКЦИИ Всемирной Организации Здравоохранения: {WOZ_REQUIREMENTS} НА ОСНОВЕ ИНФОРМАЦИИ И ТЕКСТА С ИЗОБРАЖЕНИЙ, заполни информацию о продукте по этой схеме {json.dumps(json_template)}. Определи к какой ЕДИНСТВЕННОЙ категории из БАЗЫ ПРОДУКТОВ относится продуктов, НАЙДИ СПИСОК ТРЕБОВАНИЙ ИМЕННО ДЛЯ ЭТОЙ ЧИСЛОВОЙ КАТЕГОРИИ И ДОБАВЬ РЕЗУЛЬТАТ СРАВНЕНИЯ ХАРАКТЕРИСТИК ПРОДУКТА С НИМ В ПОЛЕ comparsion JSON. Там должно быть true, если требования для искомой величины не определены или в норме для анализируемого продукта. false, если значения не в норме. NaN, если требование определено, а данные для этого продукта не найдены. ВЕРНИ ТОЛЬКО JSON ФАЙЛ, СОДЕРЖАЩИЙ ХАРАКТЕРИСТИКИ ПРОДУКТА И РЕЗУЛЬТАТ СРАВНЕНИЯ"}
         ]
         
         for image_path in self.encoded_images:
@@ -88,3 +91,11 @@ class Processor:
             return json_template
         print("LLM Execution took", time.time() - start_time, "s.")
         return response
+
+if __name__ == "__main__":
+    EXAMPLE_PATHS = ["dataset/Нестле/пюре/3-1.jpg", "dataset/Нестле/пюре/3.jpg", "dataset/Нестле/пюре/3-1 - копия.jpg"]
+    EXAMPLE = Processor()
+    EXAMPLE.initialize_images(EXAMPLE_PATHS)
+    with open('a.txt', 'a', encoding='utf-8') as file:
+        file.write(json.dumps(EXAMPLE.turn_to_llm(), indent=4))
+    print("Done!")
