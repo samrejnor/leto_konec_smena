@@ -1,9 +1,9 @@
-import sys, json
+import sys
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout,
     QFileDialog, QFrame, QStackedWidget, QScrollArea
 )
-from PyQt6.QtGui import QPixmap
+from PyQt6.QtGui import QPixmap, QIcon
 from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve
 from service import Processor
 
@@ -139,6 +139,7 @@ class MainWindow(QWidget):
         self.setWindowTitle("Честный знак")
         self.setGeometry(200, 100, 1000, 600)
         self.setStyleSheet("background-color: #121212; color: #fff; font-family: Arial; font-size: 14px;")
+        self.setWindowIcon(QIcon("./favicon.ico"))
 
         self.stack = QStackedWidget()
         main_screen = self.create_main_screen()
