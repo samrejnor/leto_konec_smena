@@ -31,7 +31,7 @@ jobs:
           nuitka-version: main
           script-name: gui.pyw
           mode: onefile
-          enable-plugins: pyqt6
+          enable-plugins: pyside6
           windows-console-mode: disable
           windows-icon-from-ico: ./favicon.ico
           linux-icon: ./favicon.ico

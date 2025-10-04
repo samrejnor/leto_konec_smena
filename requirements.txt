@@ -1,3 +1,2 @@
-pyqt6
 openai
 pyside6
