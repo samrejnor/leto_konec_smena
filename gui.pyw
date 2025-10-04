@@ -1,13 +1,40 @@
 import sys
 from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout,
-    QFileDialog, QFrame, QStackedWidget, QScrollArea, QGraphicsEffect
+    QFileDialog, QFrame, QStackedWidget, QScrollArea, QGraphicsEffect,
+    QGraphicsDropShadowEffect
 )
-from PySide6.QtGui import QPixmap, QIcon
+from PySide6.QtGui import QPixmap, QIcon, QColor, QFont
 from PySide6.QtCore import Qt, QPropertyAnimation, QEasingCurve
 from service import Processor
 
 IMAGE_PROCESSOR = Processor()
+
+# --- Стили ---
+STYLES = {
+    "font_family": "Segoe UI",
+    "background": "#1e1e2f",
+    "content_bg": "#27293d",
+    "primary": "#7f5af0",
+    "primary_hover": "#9d7bf5",
+    "text": "#e0e0e0",
+    "accent": "#2cb67d",
+    "danger": "#e53e3e",
+    "danger_hover": "#f56565",
+    "card_bg": "#2d2d4d",
+    "border": "#44475a",
+    "shadow": "#101018",
+}
+
+# --- Вспомогательная функция для теней ---
+def apply_shadow(widget, blur_radius=20, x_offset=0, y_offset=5, color=STYLES["shadow"]):
+    shadow = QGraphicsDropShadowEffect()
+    shadow.setBlurRadius(blur_radius)
+    shadow.setXOffset(x_offset)
+    shadow.setYOffset(y_offset)
+    shadow.setColor(QColor(color))
+    widget.setGraphicsEffect(shadow)
+
 
 # ✅ Словарь для русских названий пунктов
 COMPARISON_LABELS = {
@@ -28,40 +55,47 @@ COMPARISON_LABELS = {
 class ImagePreview(QFrame):
     def __init__(self, file_path, remove_callback):
         super().__init__()
-        self.file_path = file_path
         self.remove_callback = remove_callback
 
-        self.setFixedSize(160, 160)
-        self.setStyleSheet("background-color: #2a2a2a; border-radius: 10px;")
+        self.setFixedSize(160, 170)
+        self.setStyleSheet(f"""
+            QFrame {{
+                background-color: {STYLES['card_bg']};
+                border-radius: 12px;
+            }}
+        """)
 
-        layout = QVBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(8, 8, 8, 8)
+        layout.setSpacing(8)
 
         self.image_label = QLabel()
-        self.image_label.setFixedSize(160, 130)
-        pixmap = QPixmap(file_path).scaled(160, 130, Qt.KeepAspectRatioByExpanding)
+        self.image_label.setFixedSize(144, 120)
+        pixmap = QPixmap(file_path).scaled(self.image_label.size(), Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)
         self.image_label.setPixmap(pixmap)
-        self.image_label.setStyleSheet("border-top-left-radius: 10px; border-top-right-radius: 10px;")
-        layout.addWidget(self.image_label)
+        self.image_label.setStyleSheet("border-radius: 8px;")
+        layout.addWidget(self.image_label, alignment=Qt.AlignCenter)
 
-        remove_btn = QPushButton("✖")
-        remove_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #ff5555;
+        remove_btn = QPushButton("✖ Удалить")
+        remove_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {STYLES['danger']};
                 color: white;
                 border: none;
                 border-radius: 8px;
-                padding: 5px;
-                font-size: 14px;
-            }
-            QPushButton:hover {
-                background-color: #ff7777;
-            }
+                padding: 6px;
+                font-size: 13px;
+                font-weight: bold;
+            }}
+            QPushButton:hover {{
+                background-color: {STYLES['danger_hover']};
+            }}
         """)
+        remove_btn.setCursor(Qt.PointingHandCursor)
         remove_btn.clicked.connect(self.remove_image)
-        layout.addWidget(remove_btn, alignment=Qt.AlignCenter)
-
-        self.setLayout(layout)
+        layout.addWidget(remove_btn)
+        
+        apply_shadow(self, blur_radius=15, y_offset=4)
 
     def remove_image(self):
         self.remove_callback(self.file_path)
@@ -74,20 +108,20 @@ class ImageUploadWidget(QFrame):
         self.setAcceptDrops(True)
         self.images = []
 
-        self.setStyleSheet("""
-            QFrame {
-                border: 2px dashed #444;
+        self.setStyleSheet(f"""
+            QFrame {{
+                border: 2px dashed {STYLES['border']};
                 border-radius: 15px;
-                color: #bbb;
-                background-color: #222;
-            }
+                background-color: {STYLES['content_bg']};
+            }}
         """)
-        self.layout = QHBoxLayout()
-        self.layout.setSpacing(10)
-        self.setLayout(self.layout)
+        self.layout = QHBoxLayout(self)
+        self.layout.setSpacing(15)
+        self.layout.setContentsMargins(15, 15, 15, 15)
 
-        self.placeholder = QLabel("Перетащите сюда изображения (до 3)")
+        self.placeholder = QLabel("📷 Перетащите сюда до 3-х изображений")
         self.placeholder.setAlignment(Qt.AlignCenter)
+        self.placeholder.setStyleSheet(f"color: {STYLES['text']}; font-size: 16px; border: none;")
         self.layout.addWidget(self.placeholder)
     
     def clear_images(self):
@@ -136,9 +170,14 @@ class ImageUploadWidget(QFrame):
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Честный знак")
-        self.setGeometry(200, 100, 1000, 600)
-        self.setStyleSheet("background-color: #121212; color: #fff; font-family: Arial; font-size: 14px;")
+        self.setWindowTitle("Честный Знак")
+        self.setGeometry(100, 100, 1200, 700)
+        self.setStyleSheet(f"""
+            background-color: {STYLES['background']};
+            color: {STYLES['text']};
+            font-family: '{STYLES['font_family']}';
+            font-size: 14px;
+        """)
         self.setWindowIcon(QIcon("./gui.dist/favicon.ico"))
 
         self.stack = QStackedWidget()
@@ -148,121 +187,143 @@ class MainWindow(QWidget):
         self.stack.addWidget(main_screen)
         self.stack.addWidget(self.history_screen)
 
-        layout = QVBoxLayout()
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.stack)
         self.setLayout(layout)
 
     def create_main_screen(self):
         main_widget = QWidget()
-        main_layout = QVBoxLayout()
+        main_layout = QVBoxLayout(main_widget)
+        main_layout.setContentsMargins(20, 15, 20, 20)
+        main_layout.setSpacing(20)
+        
         header_layout = QHBoxLayout()
         content_layout = QHBoxLayout()
+        content_layout.setSpacing(20)
 
-        header_title = QLabel("Честный знак")
-        header_title.setStyleSheet("font-size: 24px; font-weight: bold;")
+        header_title = QLabel("Честный Знак")
+        header_title.setStyleSheet("font-size: 28px; font-weight: bold;")
         header_layout.addWidget(header_title)
         header_layout.addStretch()
 
-        history_button = QPushButton("История")
-        history_button.setStyleSheet("""
-            QPushButton {
-                background-color: #333;
-                border: none;
-                padding: 8px 16px;
-                border-radius: 10px;
-                color: #fff;
-            }
-            QPushButton:hover {
-                background-color: #444;
-            }
+        history_button = QPushButton("📜 История")
+        history_button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {STYLES['content_bg']};
+                border: 1px solid {STYLES['border']};
+                padding: 10px 20px;
+                border-radius: 12px;
+                font-weight: bold;
+            }}
+            QPushButton:hover {{
+                background-color: {STYLES['border']};
+            }}
         """)
+        history_button.setCursor(Qt.PointingHandCursor)
         history_button.clicked.connect(self.show_history)
         header_layout.addWidget(history_button)
 
+        # --- Левая панель ---
+        left_frame = QFrame()
+        left_frame.setStyleSheet(f"background-color: {STYLES['content_bg']}; border-radius: 15px;")
+        upload_container = QVBoxLayout(left_frame)
+        upload_container.setContentsMargins(20, 20, 20, 20)
+        upload_container.setSpacing(15)
+
         self.upload_widget = ImageUploadWidget()
-        upload_container = QVBoxLayout()
         upload_container.addWidget(self.upload_widget)
 
-        self.upload_button = QPushButton("Загрузить изображение")
-        self.upload_button.setStyleSheet("""
-            QPushButton {
-                background-color: #3a3a3a;
-                border-radius: 10px;
-                padding: 10px;
-            }
-            QPushButton:hover {
-                background-color: #555;
-            }
+        self.upload_button = QPushButton("📂 Выбрать файлы")
+        self.upload_button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {STYLES['card_bg']};
+                border: 1px solid {STYLES['border']};
+                border-radius: 12px;
+                padding: 12px;
+                font-weight: bold;
+            }}
+            QPushButton:hover {{
+                background-color: {STYLES['border']};
+            }}
         """)
+        self.upload_button.setCursor(Qt.PointingHandCursor)
         self.upload_button.clicked.connect(self.open_file_dialog)
         upload_container.addWidget(self.upload_button)
 
-        self.analyze_button = QPushButton("Проанализировать")
-        self.analyze_button.setStyleSheet("""
-            QPushButton {
-                background-color: #6200ea;
+        self.analyze_button = QPushButton("🚀 Проанализировать")
+        self.analyze_button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {STYLES['primary']};
                 color: white;
-                border-radius: 10px;
-                padding: 12px;
+                border-radius: 12px;
+                padding: 14px;
+                font-size: 16px;
                 font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #7b1ffa;
-            }
+            }}
+            QPushButton:hover {{
+                background-color: {STYLES['primary_hover']};
+            }}
         """)
+        self.analyze_button.setCursor(Qt.PointingHandCursor)
         self.analyze_button.clicked.connect(self.analyze_images)
         upload_container.addWidget(self.analyze_button)
+        apply_shadow(self.analyze_button, blur_radius=25, color=STYLES['primary'])
 
-        left_frame = QFrame()
-        left_frame.setStyleSheet("background-color: #1e1e1e; border-radius: 15px;")
-        left_frame.setLayout(upload_container)
+        # --- Правая панель ---
+        right_frame = QFrame()
+        right_frame.setStyleSheet(f"background-color: {STYLES['content_bg']}; border-radius: 15px;")
+        right_layout = QVBoxLayout(right_frame)
+        right_layout.setContentsMargins(5, 5, 5, 5)
 
         self.analysis_scroll = QScrollArea()
         self.analysis_scroll.setWidgetResizable(True)
-        self.analysis_scroll.setStyleSheet("border: none;")
+        self.analysis_scroll.setStyleSheet("border: none; background-color: transparent;")
 
         self.analysis_container = QWidget()
-        self.analysis_layout = QVBoxLayout()
+        self.analysis_container.setStyleSheet("background-color: transparent;")
+        self.analysis_layout = QVBoxLayout(self.analysis_container)
         self.analysis_layout.setAlignment(Qt.AlignTop)
+        self.analysis_layout.setContentsMargins(15, 15, 15, 15)
+        self.analysis_layout.setSpacing(15)
 
         self.analysis_title = QLabel("Информация о продукте")
-        self.analysis_title.setStyleSheet("font-size: 20px; font-weight: bold; color: #FFD700;")
+        self.analysis_title.setStyleSheet(f"font-size: 22px; font-weight: bold; color: {STYLES['accent']};")
         self.analysis_title.setAlignment(Qt.AlignCenter)
         self.analysis_layout.addWidget(self.analysis_title)
 
-        self.placeholder_frame = QFrame()
-        placeholder_layout = QVBoxLayout()
-        placeholder_layout.setAlignment(Qt.AlignCenter)
-
-        '''        placeholder_image = QLabel()
-        pixmap = QPixmap(64, 64)
-        pixmap.fill(Qt.GlobalColor.transparent)
-        placeholder_image.setPixmap(QPixmap("placeholder.png") if QPixmap("placeholder.png") else pixmap)
-
-        placeholder_text = QLabel("Пока тут ничего нет...")
-        placeholder_text.setStyleSheet("color: #777; font-size: 14px;")
-
-        placeholder_layout.addWidget(placeholder_image)
-        placeholder_layout.addWidget(placeholder_text)
-        self.placeholder_frame.setLayout(placeholder_layout)'''
+        self.placeholder_frame = self.create_analysis_placeholder()
         self.analysis_layout.addWidget(self.placeholder_frame)
 
-        self.analysis_container.setLayout(self.analysis_layout)
         self.analysis_scroll.setWidget(self.analysis_container)
-
-        right_frame = QFrame()
-        right_frame.setStyleSheet("background-color: #1e1e1e; border-radius: 15px;")
-        right_layout = QVBoxLayout()
         right_layout.addWidget(self.analysis_scroll)
-        right_frame.setLayout(right_layout)
 
         content_layout.addWidget(left_frame, 1)
-        content_layout.addWidget(right_frame, 1)
+        content_layout.addWidget(right_frame, 2) # Правая панель шире
 
         main_layout.addLayout(header_layout)
         main_layout.addLayout(content_layout)
-        main_widget.setLayout(main_layout)
         return main_widget
+
+    def create_analysis_placeholder(self):
+        placeholder_frame = QFrame()
+        placeholder_layout = QVBoxLayout(placeholder_frame)
+        placeholder_layout.setAlignment(Qt.AlignCenter)
+        placeholder_layout.setSpacing(15)
+
+        placeholder_image = QLabel("🤖")
+        placeholder_image.setFont(QFont(STYLES['font_family'], 60))
+        placeholder_image.setAlignment(Qt.AlignCenter)
+
+        placeholder_text = QLabel("Здесь появится информация о продукте\nпосле анализа изображений")
+        placeholder_text.setStyleSheet(f"color: {STYLES['text']}; font-size: 16px;")
+        placeholder_text.setAlignment(Qt.AlignCenter)
+        placeholder_text.setWordWrap(True)
+
+        placeholder_layout.addWidget(placeholder_image)
+        placeholder_layout.addWidget(placeholder_text)
+        return placeholder_frame
+
 
     def analyze_images(self):
         image_paths = [img[0] for img in self.upload_widget.images]
@@ -273,8 +334,14 @@ class MainWindow(QWidget):
         
         for i in reversed(range(self.analysis_layout.count())):
             widget = self.analysis_layout.itemAt(i).widget()
-            if widget and widget != self.analysis_title:
+            if widget:
+                # Скрываем, а затем удаляем, чтобы избежать мерцания
+                widget.hide()
                 widget.deleteLater()
+        
+        # Восстанавливаем заголовок
+        self.analysis_layout.addWidget(self.analysis_title)
+        self.analysis_title.show()
 
         IMAGE_PROCESSOR.initialize_images(image_paths) 
         analysis_data = IMAGE_PROCESSOR.turn_to_llm()
@@ -293,18 +360,18 @@ class MainWindow(QWidget):
         comparison_data = data.get("comparison", {})
         if comparison_data:
             comp_frame = QFrame()
-            comp_frame.setStyleSheet("background-color: #2d2d2d; border-radius: 12px; padding: 10px;")
-            comp_layout = QVBoxLayout()
+            comp_frame.setStyleSheet(f"background-color: {STYLES['card_bg']}; border-radius: 12px; padding: 10px;")
+            comp_layout = QVBoxLayout(comp_frame)
             comp_title = QLabel("Сравнение с требованиями ВОЗ")
-            comp_title.setStyleSheet("font-size: 16px; font-weight: bold; color: #FFD700; margin-bottom: 8px;")
+            comp_title.setStyleSheet(f"font-size: 18px; font-weight: bold; color: {STYLES['accent']}; margin-bottom: 8px;")
             comp_layout.addWidget(comp_title)
 
             for key, value in comparison_data.items():
                 title = COMPARISON_LABELS.get(key, key)
                 comp_layout.addWidget(self.create_comparison_block(title, value))
-
-            comp_frame.setLayout(comp_layout)
+            
             self.analysis_layout.addWidget(comp_frame)
+            apply_shadow(comp_frame)
 
         # 3. Характеристики
         characteristics = data.get("characteristics", {})
@@ -333,15 +400,14 @@ class MainWindow(QWidget):
         self.analysis_layout.addWidget(self.create_card("Дополнительно", add_items))
 
     def create_comparison_block(self, title, value):
-        print(value)
         if value == "true" or value is True:
-            color = "#3a7d44"
+            color = STYLES['accent']
             icon = "✅"
         elif value == "false" or value is False:
-            color = "#a94442"
+            color = STYLES['danger']
             icon = "❌"
         else:
-            color = "#6c757d"
+            color = STYLES['border']
             icon = "⚪"
 
         block = QFrame()
@@ -349,20 +415,20 @@ class MainWindow(QWidget):
             QFrame {{
                 background-color: {color};
                 border-radius: 10px;
-                padding: 8px;
+                padding: 10px;
                 margin-bottom: 6px;
             }}
             QLabel {{
                 color: white;
                 font-size: 14px;
                 font-weight: bold;
+                background-color: transparent;
             }}
         """)
-        layout = QHBoxLayout()
+        layout = QHBoxLayout(block)
         lbl = QLabel(f"{icon}  {title}")
         layout.addWidget(lbl)
-        layout.setContentsMargins(6, 6, 6, 6)
-        block.setLayout(layout)
+        layout.setContentsMargins(10, 6, 10, 6)
         return block
 
     def check_value(self, value):
@@ -370,26 +436,26 @@ class MainWindow(QWidget):
     
     def create_card(self, title, items):
         card = QFrame()
-        card.setStyleSheet("""
-            QFrame {
-                background-color: #2d2d2d;
+        card.setStyleSheet(f"""
+            QFrame {{
+                background-color: {STYLES['card_bg']};
                 border-radius: 12px;
-                padding: 10px;
-                margin-bottom: 10px;
-            }
-            QLabel {
-                color: white;
-                font-size: 13px;
-                padding: 2px;
-            }
+                padding: 15px;
+            }}
+            QLabel {{
+                color: {STYLES['text']};
+                font-size: 14px;
+                padding: 3px;
+                background-color: transparent;
+            }}
         """)
-        layout = QVBoxLayout()
-        layout.setContentsMargins(8, 8, 8, 8)
-        layout.setSpacing(4)
+        layout = QVBoxLayout(card)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(5)
 
         title_label = QLabel(title)
         title_label.setWordWrap(True)
-        title_label.setStyleSheet("font-size: 16px; font-weight: bold; color: #FFD700;")
+        title_label.setStyleSheet(f"font-size: 18px; font-weight: bold; color: {STYLES['accent']};")
         layout.addWidget(title_label)
 
         for item in items:
@@ -397,38 +463,64 @@ class MainWindow(QWidget):
             lbl.setWordWrap(True)
             layout.addWidget(lbl)
 
-        card.setLayout(layout)
+        apply_shadow(card)
         return card
 
     def create_history_screen(self):
         widget = QWidget()
-        layout = QVBoxLayout()
+        layout = QVBoxLayout(widget)
+        layout.setContentsMargins(20, 15, 20, 20)
+        layout.setSpacing(15)
 
         back_btn = QPushButton("← Назад")
         back_btn.clicked.connect(self.show_main)
-        back_btn.setStyleSheet("background-color: #333; border-radius: 8px; padding: 8px; color: white;")
+        back_btn.setStyleSheet(f"""
+             QPushButton {{
+                background-color: {STYLES['content_bg']};
+                border: 1px solid {STYLES['border']};
+                padding: 10px 20px;
+                border-radius: 12px;
+                font-weight: bold;
+                max-width: 120px;
+            }}
+            QPushButton:hover {{
+                background-color: {STYLES['border']};
+            }}
+        """)
+        back_btn.setCursor(Qt.PointingHandCursor)
         layout.addWidget(back_btn, alignment=Qt.AlignLeft)
+
+        title = QLabel("История анализов")
+        title.setStyleSheet(f"font-size: 24px; font-weight: bold; color: {STYLES['text']};")
+        layout.addWidget(title, alignment=Qt.AlignCenter)
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
+        scroll.setStyleSheet("border: none; background-color: transparent;")
+        
         scroll_content = QWidget()
-        scroll_layout = QVBoxLayout()
+        scroll_layout = QVBoxLayout(scroll_content)
+        scroll_layout.setSpacing(15)
+        scroll_layout.setAlignment(Qt.AlignTop)
 
+        # Пример карточек истории
         for i in range(5):
             card = QFrame()
-            card.setStyleSheet("background-color: #2a2a2a; border-radius: 15px; padding: 15px;")
-            lbl = QLabel(f"Продукт {i+1} - ⭐⭐⭐⭐☆")
-            lbl.setStyleSheet("font-size: 18px; color: white;")
-            card_layout = QVBoxLayout()
+            card.setStyleSheet(f"background-color: {STYLES['card_bg']}; border-radius: 15px; padding: 20px;")
+            lbl = QLabel(f"Продукт {i+1} - Анализ от 03.10.2025")
+            lbl.setStyleSheet(f"font-size: 18px; color: {STYLES['text']}; background: transparent;")
+            
+            desc = QLabel("Категория: Пюре | Рейтинг: ⭐️⭐️⭐️⭐️☆")
+            desc.setStyleSheet(f"font-size: 14px; color: {STYLES['text']}; background: transparent;")
+
+            card_layout = QVBoxLayout(card)
             card_layout.addWidget(lbl)
-            card.setLayout(card_layout)
+            card_layout.addWidget(desc)
+            apply_shadow(card)
             scroll_layout.addWidget(card)
 
-        scroll_content.setLayout(scroll_layout)
         scroll.setWidget(scroll_content)
-
         layout.addWidget(scroll)
-        widget.setLayout(layout)
         return widget
 
     def open_file_dialog(self):
@@ -444,21 +536,20 @@ class MainWindow(QWidget):
 
     def animate_transition(self, widget):
         self.stack.setCurrentWidget(widget)
-        # В PySide свойство для анимации прозрачности называется "opacity", а не "windowOpacity"
-        anim = QPropertyAnimation(widget, b"opacity")
-        # Также setWindowOpacity не используется напрямую с виджетами, лучше использовать QGraphicsOpacityEffect
-        opacity_effect = QGraphicsEffect(self)
+        opacity_effect = QGraphicsEffect(widget)
         widget.setGraphicsEffect(opacity_effect)
-        anim.setTargetObject(opacity_effect)
-        anim.setDuration(500)
+        
+        anim = QPropertyAnimation(opacity_effect, b"opacity")
+        anim.setDuration(300)
         anim.setStartValue(0)
         anim.setEndValue(1)
-        anim.setEasingCurve(QEasingCurve.InOutQuad)
-        anim.start()
+        anim.setEasingCurve(QEasingCurve.InOutCubic)
+        anim.start(QPropertyAnimation.DeleteWhenStopped)
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    app.setFont(QFont(STYLES["font_family"], 9))
     window = MainWindow()
     window.show()
     sys.exit(app.exec())
