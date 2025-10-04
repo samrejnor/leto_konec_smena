@@ -2,7 +2,7 @@
 import openai, time, base64, mimetypes, json
 from exported import WOZ_REQUIREMENTS
 
-content = "c2stb3ItdjEtMmRhYjZkMzliMGZjYjYzMjExNjdhMDliZjU2ZThhNGE4NmU1YjFkZjc5MGI3ZTFlMTk4MGU3M2RkMTgzYWJjOA=="
+content = "c2stb3ItdjEtNGE4NWI5ZDI1NzU2NThhMmU4OWU3Y2IyZTNjZWQwZmNlYjQwZmI2MDNkNDcxNGQ5NmJhYTdjMGJmMzMyZWVlZA=="
 
 client = openai.OpenAI(
     base_url = "https://openrouter.ai/api/v1",

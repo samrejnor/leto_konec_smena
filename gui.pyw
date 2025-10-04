@@ -1,10 +1,10 @@
 import sys
-from PyQt6.QtWidgets import (
+from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout,
-    QFileDialog, QFrame, QStackedWidget, QScrollArea
+    QFileDialog, QFrame, QStackedWidget, QScrollArea, QGraphicsEffect
 )
-from PyQt6.QtGui import QPixmap, QIcon
-from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve
+from PySide6.QtGui import QPixmap, QIcon
+from PySide6.QtCore import Qt, QPropertyAnimation, QEasingCurve
 from service import Processor
 
 IMAGE_PROCESSOR = Processor()
@@ -39,7 +39,7 @@ class ImagePreview(QFrame):
 
         self.image_label = QLabel()
         self.image_label.setFixedSize(160, 130)
-        pixmap = QPixmap(file_path).scaled(160, 130, Qt.AspectRatioMode.KeepAspectRatioByExpanding)
+        pixmap = QPixmap(file_path).scaled(160, 130, Qt.KeepAspectRatioByExpanding)
         self.image_label.setPixmap(pixmap)
         self.image_label.setStyleSheet("border-top-left-radius: 10px; border-top-right-radius: 10px;")
         layout.addWidget(self.image_label)
@@ -59,7 +59,7 @@ class ImagePreview(QFrame):
             }
         """)
         remove_btn.clicked.connect(self.remove_image)
-        layout.addWidget(remove_btn, alignment=Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(remove_btn, alignment=Qt.AlignCenter)
 
         self.setLayout(layout)
 
@@ -87,7 +87,7 @@ class ImageUploadWidget(QFrame):
         self.setLayout(self.layout)
 
         self.placeholder = QLabel("Перетащите сюда изображения (до 3)")
-        self.placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.placeholder.setAlignment(Qt.AlignCenter)
         self.layout.addWidget(self.placeholder)
     
     def clear_images(self):
@@ -223,16 +223,16 @@ class MainWindow(QWidget):
 
         self.analysis_container = QWidget()
         self.analysis_layout = QVBoxLayout()
-        self.analysis_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self.analysis_layout.setAlignment(Qt.AlignTop)
 
         self.analysis_title = QLabel("Информация о продукте")
         self.analysis_title.setStyleSheet("font-size: 20px; font-weight: bold; color: #FFD700;")
-        self.analysis_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.analysis_title.setAlignment(Qt.AlignCenter)
         self.analysis_layout.addWidget(self.analysis_title)
 
         self.placeholder_frame = QFrame()
         placeholder_layout = QVBoxLayout()
-        placeholder_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        placeholder_layout.setAlignment(Qt.AlignCenter)
 
         '''        placeholder_image = QLabel()
         pixmap = QPixmap(64, 64)
@@ -407,7 +407,7 @@ class MainWindow(QWidget):
         back_btn = QPushButton("← Назад")
         back_btn.clicked.connect(self.show_main)
         back_btn.setStyleSheet("background-color: #333; border-radius: 8px; padding: 8px; color: white;")
-        layout.addWidget(back_btn, alignment=Qt.AlignmentFlag.AlignLeft)
+        layout.addWidget(back_btn, alignment=Qt.AlignLeft)
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
@@ -444,12 +444,16 @@ class MainWindow(QWidget):
 
     def animate_transition(self, widget):
         self.stack.setCurrentWidget(widget)
-        anim = QPropertyAnimation(widget, b"windowOpacity")
-        widget.setWindowOpacity(0)
+        # В PySide свойство для анимации прозрачности называется "opacity", а не "windowOpacity"
+        anim = QPropertyAnimation(widget, b"opacity")
+        # Также setWindowOpacity не используется напрямую с виджетами, лучше использовать QGraphicsOpacityEffect
+        opacity_effect = QGraphicsEffect(self)
+        widget.setGraphicsEffect(opacity_effect)
+        anim.setTargetObject(opacity_effect)
         anim.setDuration(500)
         anim.setStartValue(0)
         anim.setEndValue(1)
-        anim.setEasingCurve(QEasingCurve.Type.InOutQuad)
+        anim.setEasingCurve(QEasingCurve.InOutQuad)
         anim.start()
 
 
