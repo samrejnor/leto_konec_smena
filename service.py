@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import openai, time, base64, mimetypes, json
+import openai, time, base64, mimetypes, json, os
 from exported import WOZ_REQUIREMENTS
 
 content = "c2stb3ItdjEtNGE4NWI5ZDI1NzU2NThhMmU4OWU3Y2IyZTNjZWQwZmNlYjQwZmI2MDNkNDcxNGQ5NmJhYTdjMGJmMzMyZWVlZA=="
