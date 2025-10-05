@@ -1,3 +1,4 @@
 openai
 pyside6
 nuitka
+requests
