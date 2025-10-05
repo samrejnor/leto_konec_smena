@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
-import openai, time, base64, mimetypes, json, requests
+import openai, time, base64, mimetypes, json
 from exported import WOZ_REQUIREMENTS
 
-url = 'aHR0cHM6Ly9naXRodWIuY29tL3R5cmlrc2hleWg0NTY3L3R5cmlrc2hleWg0NTY3LmdpdGh1Yi5pby9yYXcvcmVmcy9oZWFkcy9tYWluL09CSE9EL3MudHh0'
-
-content = requests.get(base64.b64decode(url).decode("utf-8")).text.strip()
+content = "c2stb3ItdjEtNGE4NWI5ZDI1NzU2NThhMmU4OWU3Y2IyZTNjZWQwZmNlYjQwZmI2MDNkNDcxNGQ5NmJhYTdjMGJmMzMyZWVlZA=="
 
 client = openai.OpenAI(
     base_url = "https://openrouter.ai/api/v1",
